@@ -1,4 +1,4 @@
-import socket
+import socket, os
 
 sock = socket.socket()
 
@@ -11,21 +11,48 @@ except OSError:
 
 sock.listen(5)
 
-conn, addr = sock.accept()
-print("Connected", addr)
+workdir = os.getcwd()
+workdir = os.path.join(workdir,'www')
 
-data = conn.recv(8192)
-msg = data.decode()
+header = 'HTTP/1.1 200 OK\nServer: StepIgorWebServer v1.0.0\nContent-type: text/html; charset:utf-8\nConnection: close\n\n'
+error404header = 'HTTP/1.1 404 Not Found\nServer: StepIgorWebServer v1.0.0'
+error403header = 'HTTP/1.1 403 Forbidden\nServer: StepIgorWebServer v1.0.0'
 
-print(msg)
+while True:
 
-resp = """HTTP/1.1 200 OK
-Server: SelfMadeServer v0.0.1
-Content-type: text/html
-Connection: close
+	conn, addr = sock.accept()
 
-Hello, webworld!"""
+	data = conn.recv(8192)
+	msg = data.decode()
 
-conn.send(resp.encode())
+	print(msg)
+	
+	askfile = msg.split('\n')[0].split(' ')[1]
+	ansfile = ''
+	
+	#work with FS
+	
+	if (askfile == '/'):
+		with open(os.path.join(workdir,'index.html'),'r', encoding='UTF-8') as f:
+			ansfile = f.read()
+		answer = header + ansfile
+		conn.send(answer.encode())
+	else:
+		askfile = askfile[1:len(askfile)]
+		if os.path.exists(os.path.join(workdir,askfile)):
+			if os.path.isfile(os.path.join(workdir,askfile)):
+				with open(os.path.join(workdir,os.path.join(workdir,askfile)),'r', encoding='UTF-8') as f:
+					ansfile = f.read()
+				answer = header + ansfile
+				conn.send(answer.encode())
+			else:
+				answer = error403header
+				conn.send(answer.encode())
+		else:
+			answer = error404header
+			conn.send(answer.encode())
+	
 
-conn.close()
+	#end
+
+	conn.close()
