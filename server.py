@@ -1,5 +1,16 @@
 import socket
 
+def get(msg):
+    msg_m = msg.split()
+    try:
+        with open('templates/'+msg_m[1][1:], 'r') as f:
+            htm = f.read()
+    except:
+        with open('templates/'+'index.html', 'r') as f:
+            htm = f.read()
+    return htm
+
+
 sock = socket.socket()
 
 try:
@@ -10,22 +21,21 @@ except OSError:
     print("Using port 8080")
 
 sock.listen(5)
+while True:
+    conn, addr = sock.accept()
+    print("Connected", addr)
 
-conn, addr = sock.accept()
-print("Connected", addr)
+    data = conn.recv(8192)
+    msg = data.decode()
+    print(msg)
 
-data = conn.recv(8192)
-msg = data.decode()
-
-print(msg)
-
-resp = """HTTP/1.1 200 OK
+    resp = """HTTP/1.1 200 OK
 Server: SelfMadeServer v0.0.1
 Content-type: text/html
 Connection: close
 
-Hello, webworld!"""
+"""+get(msg)
 
-conn.send(resp.encode())
+    conn.send(resp.encode())
 
-conn.close()
+    conn.close()
