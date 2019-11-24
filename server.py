@@ -5,16 +5,6 @@ import datetime
 import os
 
 
-# Функция для работы с клиентами
-def connection(conn, addr, directory):
-    print("Connected", addr, "\n")
-
-    data = conn.recv(settings.request_size)
-    if not data:
-        return
-    request(conn, addr, data, directory)
-
-
 # Функция обрабатывающая запрос
 def request(conn, addr, data, directory):
     # Получение инфы от клиента
@@ -71,7 +61,7 @@ def request(conn, addr, data, directory):
                     Content-Type: text/{decr};charset=utf-8
                     Content-Length: {size}
                     Connection: keep-alive
-    
+
                     """
                     resp += file.read()
                 resp = resp.encode()
@@ -83,7 +73,7 @@ def request(conn, addr, data, directory):
                 Content-Type: image/{decr}
                 Content-Length: {size}
                 Connection: keep-alive
-    
+
                 """
                 resp = resp.encode()
                 with open(name, "rb") as file:
@@ -91,8 +81,16 @@ def request(conn, addr, data, directory):
     conn.send(resp)
 
 
-settings = Settings()  # Создаём переменную в которой хранятся настройки
+# Функция для работы с клиентами
+def connection(conn, addr, directory):
+    data = conn.recv(settings.request_size)
+    if not data:
+        return
+    request(conn, addr, data, directory)
+    conn.close()
 
+
+settings = Settings()  # Создаём переменную в которой хранятся настройки
 sock = socket.socket()
 
 # Подключаемся и начинаем прослушивать порт, указанный в настройках
@@ -109,6 +107,7 @@ directory = settings.directory
 # На каждое подключение - свой поток
 conn, addr = sock.accept()
 while True:
+    print("Connected", addr, "\n")
     tr = threading.Thread(target=connection, args=(conn, addr, directory))
     tr.start()
     conn, addr = sock.accept()
