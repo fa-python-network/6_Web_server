@@ -3,7 +3,6 @@ from settings import Settings
 import threading
 import datetime
 import os
-import image_to_html
 
 
 # Функция для работы с клиентами
@@ -11,9 +10,9 @@ def connection(conn, addr, directory):
     print("Connected", addr, "\n")
 
     data = conn.recv(settings.request_size)
+    if not data:
+        return
     request(conn, addr, data, directory)
-
-    conn.close()
 
 
 # Функция обрабатывающая запрос
@@ -62,41 +61,29 @@ def request(conn, addr, data, directory):
             """
             with open("log.txt", "a") as log:
                 print("Error: 403", file=log)
-        try:
-            # Если файл текстовый
-            with open(name, "r", encoding="utf-8") as file:
-                resp = f"""HTTP/1.1 200 OK
-                Server: SelfMadeServer v0.0.1
-                Date: {date}
-                Content-Type: text/html;charset=utf-8
-                Content-Length: {size}
-                Connection: keep-alive
-
-                """
-                resp += file.read()
-            resp = resp.encode()
-            # Если файл бинарный
-        except UnicodeDecodeError:
-            # Если файл картинка
-            if decr in settings.pictures:
-                resp = f"""HTTP/1.1 200 OK
-                Server: SelfMadeServer v0.0.1
-                Date: {date}
-                Content-Type: text/image/html;charset=utf-8
-                Content-Length: {size}
-                Connection: keep-alive
-
-                """
-                resp += image_to_html.magic(name)
+        else:
+            try:
+                # Если файл текстовый
+                with open(name, "r", encoding="utf-8") as file:
+                    resp = f"""HTTP/1.1 200 OK
+                    Server: SelfMadeServer v0.0.1
+                    Date: {date}
+                    Content-Type: text/{decr};charset=utf-8
+                    Content-Length: {size}
+                    Connection: keep-alive
+    
+                    """
+                    resp += file.read()
                 resp = resp.encode()
-            else:
+                # Если файл бинарный (картинка)
+            except UnicodeDecodeError:
                 resp = f"""HTTP/1.1 200 OK
                 Server: SelfMadeServer v0.0.1
                 Date: {date}
-                Content-Type: bytes
+                Content-Type: image/{decr}
                 Content-Length: {size}
                 Connection: keep-alive
-
+    
                 """
                 resp = resp.encode()
                 with open(name, "rb") as file:
@@ -119,6 +106,7 @@ sock.listen(5)
 
 directory = settings.directory
 
+# На каждое подключение - свой поток
 conn, addr = sock.accept()
 while True:
     tr = threading.Thread(target=connection, args=(conn, addr, directory))
