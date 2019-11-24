@@ -5,26 +5,19 @@ import datetime
 import os
 import image_to_html
 
-settings = Settings()  # Создаём переменную в которой хранятся настройки
 
-sock = socket.socket()
+# Функция для работы с клиентами
+def connection(conn, addr, directory):
+    print("Connected", addr, "\n")
 
-# Подключаемся и начинаем прослушивать порт, указанный в настройках
-try:
-    sock.bind(('', settings.port))
-    print(f"Using port {settings.port}")
-except OSError:
-    sock.bind(('', settings.port2))
-    print(f"Using port {settings.port2}")
-sock.listen(5)
+    data = conn.recv(settings.request_size)
+    request(conn, addr, data, directory)
 
-conn, addr = sock.accept()
-print("Connected", addr, "\n")
-
-directory = settings.directory
+    conn.close()
 
 
-def request(conn, addr, data):
+# Функция обрабатывающая запрос
+def request(conn, addr, data, directory):
     # Получение инфы от клиента
     msg = data.decode()
     print(msg)
@@ -50,7 +43,7 @@ def request(conn, addr, data):
 
     # Если файла с таким именем нет
     except FileNotFoundError:
-        resp = f"""HTTP/1.1 404 OK
+        resp = f"""HTTP/1.1 404 Not Found
         Server:SelfMadeServer v0.0.1
         Date: {date}
         Connection: keep-alive
@@ -62,7 +55,7 @@ def request(conn, addr, data):
     else:
         decr = name.split(".")[-1]  # Получение расширения
         if decr not in settings.types:
-            resp = f"""HTTP/1.1 403 OK
+            resp = f"""HTTP/1.1 403 Forbidden
             Server:SelfMadeServer v0.0.1
             Date: {date}
             Connection: keep-alive
@@ -78,7 +71,7 @@ def request(conn, addr, data):
                 Content-Type: text/html;charset=utf-8
                 Content-Length: {size}
                 Connection: keep-alive
-    
+
                 """
                 resp += file.read()
             resp = resp.encode()
@@ -92,7 +85,7 @@ def request(conn, addr, data):
                 Content-Type: text/image/html;charset=utf-8
                 Content-Length: {size}
                 Connection: keep-alive
-    
+
                 """
                 resp += image_to_html.magic(name)
                 resp = resp.encode()
@@ -103,24 +96,31 @@ def request(conn, addr, data):
                 Content-Type: bytes
                 Content-Length: {size}
                 Connection: keep-alive
-        
+
                 """
                 resp = resp.encode()
                 with open(name, "rb") as file:
                     resp += file.read()
-
     conn.send(resp)
 
 
-threads = []
-while True:
-    data = conn.recv(settings.request_size)
-    if not data:
-        break
-    tr = threading.Thread(request(conn, addr, data))
-    threads.append(tr)
-    tr.start()
-for tr in threads:
-    tr.join()
+settings = Settings()  # Создаём переменную в которой хранятся настройки
 
-conn.close()
+sock = socket.socket()
+
+# Подключаемся и начинаем прослушивать порт, указанный в настройках
+try:
+    sock.bind(('', settings.port))
+    print(f"Using port {settings.port}")
+except OSError:
+    sock.bind(('', settings.port2))
+    print(f"Using port {settings.port2}")
+sock.listen(5)
+
+directory = settings.directory
+
+conn, addr = sock.accept()
+while True:
+    tr = threading.Thread(target=connection, args=(conn, addr, directory))
+    tr.start()
+    conn, addr = sock.accept()
