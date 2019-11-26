@@ -1,4 +1,8 @@
 import socket
+from wsgiref.handlers import format_date_time
+from datetime import datetime
+from time import mktime
+from os import path
 
 
 def get(msg):
@@ -10,6 +14,15 @@ def get(msg):
         with open('templates/'+'index.html', 'r') as f:
             htm = f.read()
     return htm
+
+
+def content_length(msg):
+    msg_m = msg.split()
+    try:
+        with open('templates/' + msg_m[1][1:], 'r') as f:
+            return path.getsize('templates/' + msg_m[1][1:])
+    except:
+        return path.getsize('templates/' + 'index.html')
 
 
 sock = socket.socket()
@@ -29,13 +42,16 @@ while True:
     data = conn.recv(8192)
     msg = data.decode()
     print(msg)
-
-    resp = """HTTP/1.1 200 OK
+    now = datetime.now()
+    stamp = mktime(now.timetuple())
+    resp = ("""HTTP/1.1 200 OK
 Server: SelfMadeServer v0.0.1
+Date: {}
 Content-type: text/html
 Connection: close
+Content-length: {}
 
-"""+get(msg)
+"""+get(msg)).format(format_date_time(stamp), content_length(msg))
 
     conn.send(resp.encode())
 
