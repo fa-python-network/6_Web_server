@@ -7,22 +7,26 @@ from os import path
 
 def get(msg):
     msg_m = msg.split()
+    if msg_m[1] == '/':
+        msg_m[1] = '/index.html'
     try:
-        with open('templates/'+msg_m[1][1:], 'r') as f:
+        with open('templates/'+msg_m[1][1:], 'r') as f:  # проверяем существование сего файлика
             htm = f.read()
     except:
-        with open('templates/'+'index.html', 'r') as f:
+        with open('templates/' + '404.html', 'r') as f:
             htm = f.read()
     return htm
 
 
 def content_length(msg):
     msg_m = msg.split()
+    if msg_m[1] == '/':
+        msg_m[1] = '/index.html'
     try:
-        with open('templates/' + msg_m[1][1:], 'r') as f:
+        with open('templates/' + msg_m[1][1:], 'r'):  # проверяем существование сего файлика
             return path.getsize('templates/' + msg_m[1][1:])
     except:
-        return path.getsize('templates/' + 'index.html')
+        return path.getsize('templates/' + '404.html')
 
 
 sock = socket.socket()
