@@ -1,0 +1,3 @@
+port=9090
+dir=rar
+vol=8192
