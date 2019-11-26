@@ -1,4 +1,4 @@
-import socket, os
+import socket, os, time
 
 sock = socket.socket()
 
@@ -14,7 +14,7 @@ sock.listen(5)
 workdir = os.getcwd()
 workdir = os.path.join(workdir,'www')
 
-header = ['HTTP/1.1',' ','2(code and word)','\nServer: StepIgorWebServer v1.0.0\nContent-type: ','4(content type)','; charset:utf-8\nConnection: close\n\n']
+header = ['HTTP/1.1',' ','2(code and word)','\nServer: StepIgorWebServer v1.0.0\nContent-type: ','4(content type)','; charset:utf-8\nConnection: close\nDate: ','6 (date)','\n\n']
 
 while True:
 
@@ -30,6 +30,8 @@ while True:
 	ansfile = ''
 	
 	#work with FS
+	
+	header[6] = time.strftime('%a, %d %b %Y %H:%M:%S GMT');
 	
 	if (askfile == '/'):
 		with open(os.path.join(workdir,'index.html'),'r', encoding='UTF-8') as f:
