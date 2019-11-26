@@ -55,8 +55,8 @@ Connection: close
         log=open('log.txt','a')
         log.write(str(datetime.datetime.now())+': '+str(addr)[2:str(addr).find(',')-1]+'-->'+path+':200'+'\n')
     else:
-        print(path+'!')
-        if path!='':
+        
+        if path!='' and path!='favicon.ico ':
             log=open('log.txt','a')
             log.write(str(datetime.datetime.now())+': '+str(addr)[2:str(addr).find(',')-1]+'-->'+path+':404,returned index.txt'+'\n')
             log.close()
