@@ -8,7 +8,7 @@ from datetime import datetime
 class HTTPTemplate(object):
 
     @classmethod
-    def determine_type(cls, path: str, supported_formats: tuple = None) -> dict or None:
+    def identify_type(cls, path: str, supported_formats: tuple = None) -> dict or None:
         """
         Определяет тип файла и возвращает его темплейт или None
 
@@ -27,11 +27,11 @@ class HTTPTemplate(object):
 
         if any(expansion == item for item in supported_formats):
             with open(path, "rb") as f:
-                return HTTPTemplate.use(f.read(), type=expansion)
+                return HTTPTemplate.use_selected_type(f.read(), type=expansion)
         return None
 
     @staticmethod
-    def use(template: any, type: str = None) -> dict:
+    def use_selected_type(template: any, type: str = None) -> dict:
         """
         Создает темплейт из функции
 
@@ -45,18 +45,19 @@ class HTTPTemplate(object):
 
 class HTTPHandler(asyncio.Protocol):
 
+    __host = None
+    __port = None
+    __allowed_methods = ["GET"]
+    __transport = None
+    __method = None
+    __url = None
+    __type = None
+    __code = None
+    __headers = None
+    __content = None
+    __body = None
+
     def __init__(self, server: 'HTTPServer', loop: asyncio.get_event_loop):
-        self.__host = None
-        self.__port = None
-        self.__transport = None
-        self.__method = None
-        self.__allowed_methods = ["GET"]
-        self.__url = None
-        self.__type = None
-        self.__code = None
-        self.__headers = None
-        self.__content = None
-        self.__body = None
         self.__server = server
         self.__loop = loop
 
@@ -130,27 +131,16 @@ class HTTPHandler(asyncio.Protocol):
 
         self.__method, self.__url = request.split(" ")[:2]
 
-        # Проверяет не favicon ли запрашивает сервер
-        if self.__url == "/favicon.ico":
-            # Поиск favicon в корне и /static
+        # Проверяет на запрос статического хранилища
+        if self.__url.startswith(self.__server.static):
             if os.path.isfile(self.__server.path + self.__url):
-                self.__content = HTTPTemplate.determine_type(self.__server.path + self.__url,
-                                                             supported_formats=self.__server.static_supported_format)
-            elif os.path.isfile(self.__server.path + self.__server.static + self.__url):
-                self.__content = HTTPTemplate.determine_type(self.__server.static_path + self.__url,
-                                                             supported_formats=self.__server.static_supported_format)
-            else:
-                self.__code = 404
-        # Проверяет существование файла в статическом хранилище
-        elif self.__url.startswith(self.__server.static):
-            if os.path.isfile(self.__server.path + self.__url):
-                self.__content = HTTPTemplate.determine_type(self.__server.path + self.__url,
-                                                             supported_formats=self.__server.static_supported_format)
+                self.__content = HTTPTemplate.identify_type(self.__server.path + self.__url,
+                                                            supported_formats=self.__server.static_supported_format)
                 if self.__content is None:
                     self.__code = 403
             else:
                 self.__code = 404
-        # Если предыдущие не выполнились ищет в роутах
+        # Если не смог найти, начинает искать в роутах
         else:
             try:
                 # Получает функцию из route для текущей ссылки и получает разрешенные методы
@@ -172,15 +162,15 @@ class HTTPHandler(asyncio.Protocol):
         :return:
         """
 
-        self.__generate_code()
-        self.__generate_body()
-        self.__generate_header()
+        await self.__generate_code()
+        await self.__generate_body()
+        await self.__generate_header()
 
         if isinstance(self.__body, bytes):
             return self.__headers.encode() + self.__body
         return (self.__headers + self.__body).encode()
 
-    def __generate_code(self) -> None:
+    async def __generate_code(self) -> None:
         """
         Генерирует код ответа
 
@@ -209,7 +199,7 @@ class HTTPHandler(asyncio.Protocol):
                 self.__headers = f"{http_version} 200 OK\n"
                 self.__code = 200
 
-    def __generate_body(self) -> None:
+    async def __generate_body(self) -> None:
         """
         Генерирует тело ответа  и определяет тип возвращаемых данных
 
@@ -234,7 +224,7 @@ class HTTPHandler(asyncio.Protocol):
             self.__body = self.__content["site"]
             self.__type = self.__content["type"]
 
-    def __generate_header(self) -> None:
+    async def __generate_header(self) -> None:
         """
         Генерирует заголовки ответа
 
@@ -257,7 +247,7 @@ class HTTPServer(object):
 
     def __init__(self, host: str = "localhost", port: int = 9000, static: str = "/static",
                  static_supported_format: tuple = None, name: str = "Python3", allowed_methods: list = None,
-                 keep_alive: bool = True, debug: bool = True):
+                 keep_alive: bool = True, debug: bool = True, favicon: str = None):
 
         logging.basicConfig(
             level=logging.DEBUG if debug is True else logging.INFO,
@@ -290,6 +280,7 @@ class HTTPServer(object):
         self.__static = static
         self.__path = "/".join(os.path.abspath(__file__).split("/")[:-1])
         self.__urls = dict()
+        self.__favicon(favicon)
         self.__loop = asyncio.get_event_loop()
         self.__tasks = self.__loop.create_server(lambda: HTTPHandler(self, self.__loop), self.host, self.port)
         self.__server = self.__loop.run_until_complete(self.__tasks)
@@ -421,3 +412,19 @@ class HTTPServer(object):
         weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dt.weekday()]
         month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][dt.month - 1]
         return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (weekday, dt.day, month, dt.year, dt.hour, dt.minute, dt.second)
+
+    def __favicon(self, path: str) -> bool:
+        """
+        Устанавливает Favicon
+
+        :return:
+        """
+
+        if path and os.path.isfile(self.path + path):
+            @self.route("/favicon.ico", methods=["GET"])
+            def open_ico() -> dict:
+                with open(self.path + path, "rb") as f:
+                    return HTTPTemplate.use_selected_type(template=f.read(), type="ICO")
+
+            return True
+        return False

@@ -7,6 +7,7 @@ class Config(Enum):
     name = "Python3 Server"
     debug = True
     keep_alive = True
+    favicon = "/favicon.ico"
     static = "/static"
     static_supported_format = ("HTML", "JPG", "JPEG", "PNG", "ICO", "JSON", "SVG", "SVGZ", "WOFF", "WOFF2", "MP4",
                                "MP3", "TTF", "JPG", "JPEG", "GIF", "PNG", "ICO", "SH", "AVI", "BIN", "CSS", "CSV",
