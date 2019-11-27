@@ -1,6 +1,7 @@
 import socket
-import datetime
+#import datetime
 import os
+import time
 
 log = open('log.txt', 'a+')
 st = open('settings.txt').readlines()
@@ -28,11 +29,13 @@ except OSError:
 sock.listen(5)
 
 k = ''
-if dr != 'main':
-    k = os.getcwd()
-else:
-    k = os.path.join(os.getcwd(), dr)
-
+try:
+    if dr.rstrip() == 'main':
+        k = os.getcwd()
+    else:
+        k = os.path.join(os.getcwd(), dr.rstrip())
+except:
+    k = os.path.join(os.getcwd(), dr.rstrip())
 
 conn, addr = sock.accept()
 print("Connected", addr)
@@ -46,13 +49,21 @@ a = msg.split(' ')
 '''проверка файла/запроса'''
 a1 = a[1]
 add = a1[1::]
+try:
+    pnt = add.split('.')
+    pnt = pnt[1].rstrip()
+except:
+    pnt = ''
 
 #'''проверка конекта'''
 #cnn = msg.split('\n')[2][12::]
 
 '''дата'''
-date = datetime.date.today()
-log.writelines(str(date) + '\n')
+tm = time.time()
+tm = str(time.ctime(tm))
+log.writelines(tm + '\n')
+#date = datetime.date.today()
+#log.writelines(str(date) + '\n')
 
 '''проверка ip'''
 ip = addr[0]
@@ -64,70 +75,64 @@ if add != '':
 else:
     log.writelines('Without file\n_____\n')
 
-if add == '' or add == 'index':
-    tt = os.path.join(k, 'index.html')
-    with open(tt, 'r') as f:
-        s = ''
-        s1 = ''
-        for i in f:
-            s+=i
-            s1+=i.rstrip()
-    ln = len(s1)
-    resp = f"""HTTP/1.1 200 OK
-    Server: SelfMadeServer v0.0.2
-    Content-type: text/html
-    Connection: close
-
-Date: {date}
-Content-type: text/html
-Server: SelfMadeServer v0.0.2
-Content-length: {ln}
-Connection: close.\n
-{s}"""
-
-elif add == '1.html':
-    tt = os.path.join(k, add)
-    with open(tt, 'r') as f:
-        s = ''
-        for i in f:
-            s+=i
-    resp = """HTTP/1.1 200 OK
-    Server: SelfMadeServer v0.0.2
-    Content-type: text/html
-    Connection: close
-
-{}""".format(s)
-
-elif add == '2.html':
-    tt = os.path.join(k, add)
-    with open(tt, 'r') as f:
-        s = ''
-        for i in f:
-            s+=i
-    resp = """HTTP/1.1 200 OK
-    Server: SelfMadeServer v0.0.2
-    Content-type: text/html
-    Connection: close
-
-{}""".format(s)
-
-#elif add[:4] != 'html' or add[:3] != 'css' or add[:2] != 'js':
-#    resp = """HTTP/1.1 403 Forbidden
-#        Server: SelfMadeServer v0.0.2
-#        Content-type: text/html
-#        Connection: close"""
-
-else:
-    resp = """HTTP/1.1 404 Not Found
+try:
+    if add.rstrip() == '':
+        tt = os.path.join(k, 'index.html')
+        tt = tt.replace('\\','/')
+        with open(tt, 'r', encoding='utf-8') as f: 
+            s = ''
+            s1 = ''
+            for i in f:
+                s1 += i
+                s += i
+            s1 = len(s1)
+        resp = f"""HTTP/1.1 200 OK
+        {tm}
         Server: SelfMadeServer v0.0.2
         Content-type: text/html
+        {s1}
+        Connection: close
+
+
+{s}"""
+
+    elif  pnt != 'html' and pnt != 'js' and pnt != 'css':
+        resp = f"""HTTP/1.1 403 Forbidden
+        Server: SelfMadeServer v0.0.2
+        Content-type: text/html
+        Connection: close"""
+        
+    else:
+        tt = os.path.join(k, add)
+        with open(tt, 'r', encoding='utf-8') as f:
+            s = ''
+            s1 = ''
+            for i in f:
+                s1 += i
+                s += i
+            s1 = len(s1)
+        resp = f"""HTTP/1.1 200 OK
+        {tm}
+        Server: SelfMadeServer v0.0.2
+        Content-type: text/html
+        {s1}
+        Connection: close
+
+{s}"""
+    
+except FileNotFoundError:
+    resp = f"""HTTP/1.1 404 Not Found
+        {tm}
+        Server: SelfMadeServer v0.0.2
+        Content-type: text/html
+        {s1}
         Connection: close"""
 
 '''код ошибки'''
 rar = resp[9::]
 if int(rar[:3]) >= 400:
     log.writelines(rar[:3] + '\n')
-log.writelines('_' * len(add) + '\n')
+log.writelines('_' * 5 + '\n')
 
 conn.send(resp.encode())
 
