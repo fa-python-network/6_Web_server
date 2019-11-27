@@ -1,4 +1,5 @@
 import socket
+import datetime
 
 sock = socket.socket()
 
@@ -17,14 +18,28 @@ print("Connected", addr)
 data = conn.recv(8192)
 msg = data.decode()
 
+
+
 print(msg)
+
+name = msg.split(" ")[1][1:]
+
+#print(name)
+
 
 resp = """HTTP/1.1 200 OK
 Server: SelfMadeServer v0.0.1
-Content-type: text/html
-Connection: close
+"""
+resp+="Сегодняшняя дата: "+ str(datetime.date.today()) + "\n"
+resp+="\n"
 
-Hello, webworld!"""
+if name != "":
+    try:
+        with open(name, 'r', encoding='utf-8') as file:
+            resp += file.read()
+    except FileNotFoundError:
+        with open('404.html', 'r', encoding='utf-8') as file:
+            resp += file.read()
 
 conn.send(resp.encode())
 
