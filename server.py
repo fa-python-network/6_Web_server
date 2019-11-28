@@ -12,6 +12,13 @@ def file_format(file):
     """Определяет формат файла """
     return os.path.splitext(file)[1]
 
+def set_server(settings_file,sep=";"):
+    """В файле настроек хранятся: порт, запасной порт, директория, макс. объём запроса """
+    settings=tuple()
+    with open(settings_file) as f:
+        setings=f.read().split(sep)
+    return settings
+
 def content_type(extension):
     """Определяет content-type """
     text=["txt","css","html"]
@@ -41,12 +48,13 @@ def respond(file,content,code=200):
 
 sock = socket.socket()
 
+port,backup_port,path,bufsize=set_settings("settings.txt")
 try:
-    sock.bind(('', 80))
-    print("Using port 80")
+    sock.bind(('', port))
+    print("Using port {}".format(port))
 except OSError:
-    sock.bind(('', 8080))
-    print("Using port 8080")
+    sock.bind(('', backup_port))
+    print("Using port {}".format(backup_port))
 
 sock.listen(5)
 
@@ -59,22 +67,22 @@ content=""
 code=int()
 
 print(msg)
-link=msg.split(" ")[1][0:]
-if link=="/":
-    link="index.html"
-print(link)
-if not os.path.exists(link):
+file=msg.split(" ")[1][0:]
+if file=="/":
+    file="index.html"
+file=os.path.join(dir,file)
+if not os.path.exists(file):
     code=404
 else:
-    if not valid_format(link):
+    if not valid_format(file):
         code=403
     else:
         code=200
-        with open(link,"r") as f:
+        with open(file,"r") as f:
         for line in f:
             content+=line
 
-resp=respond(link,content,code)
+resp=respond(file,content,code)
 
 conn.send(resp.encode())
 
