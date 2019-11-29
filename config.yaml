@@ -1,0 +1,4 @@
+host: "localhost"
+port: 80
+base_dir: "base_dir"
+req_max_size: 8192
