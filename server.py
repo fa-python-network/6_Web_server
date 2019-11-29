@@ -3,10 +3,11 @@ import os
 import datetime
 import bs4, requests
 
-global image,text,application
+global image,text,application, statuses
 text=[".txt",".css",".html"]
 image=[".png",".jpeg"]
 application=[".js"]
+statuses={200: "OK", 403:"Forbidden",404: "Not Found"}
 
 def valid_format(file,formats=[".jpeg",".txt",".png",".css",".html", ".js"]):
     """Проверяет, входит ли формат файла в список валидных"""
@@ -33,29 +34,33 @@ def file_format(file):
     return os.path.splitext(file)[1]
 
 def is_image(file):
+    """ Является ли файл картинкой"""
     global image
     if file_format(file) in image:
         return True
     return False
 
 def is_text(file):
+    """ Является ли файл текстом"""
     global text
     if file_format(file) in text:
         return True
     return False
 
 def read_image(file):
+    """ Чтение изображения (бинарный режим) """
     with open(file,"rb") as f:
         content=f.read()
         return content
     
 def read_text(file):
+    """ Чтение текста"""
     content=str()
     with open(file,"r",encoding="utf-8") as f: #читает содержимое файла
         for line in f:
             content+=line 
     return content
-    
+   
 def set_server(settings_file,sep=";"):
     """В файле настроек хранятся: порт, запасной порт, макс. объём запроса, директория """
     settings = list()
@@ -71,7 +76,7 @@ def get_ip():
     return a.strip()
 
 def log(log_file,file,code):
-    """ Логирует дату, ip, код статуса в файл """
+    """ Логирует дату, ip, файл, код статуса в файл """
     global statuses
     date=datetime.datetime.now()
     ip=get_ip()
@@ -82,19 +87,17 @@ def log(log_file,file,code):
     with open(log_file,mod) as f:
         f.write("Date: {}\nIP: {}\nFile: {}\nCode: {} {}\n\n".format(date,ip,file,code,statuses[code]))
         
-
-
 def respond(file,content,code = 200):
     """Формирует ответ в соответствии с кодом """
     global statuses
-    statuses={200: "OK", 403:"Forbidden",404: "Not Found"}
     http="HTTP/1.1"
     server="Self-Made Server v0.0.1"
     date = datetime.datetime.now()
     contenttype = content_type(file_format(file))
     contentlength = len(content)
     connection="close"
-    response="{} {} {}\nDate: {}\nServer: {}\nContent-type: {}\nContent-length: {}\nConnection: {}\n\n{}".format(http,code,statuses[code],date,server,contenttype,
+    response="{} {} {}\nDate: {}\nServer: {}\nContent-type: {}\nContent-length: {}\nConnection: {}\n\n{}".format(http,code,
+              statuses[code],date,server,contenttype,
                  contentlength,connection,content)
     return response
 
@@ -108,9 +111,9 @@ def format_address(file,path):
         file = file[1:]
     return file
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock = socket.socket()
 
-port,backup_port,bufsize,path = set_server("settings.txt")
+port,backup_port,bufsize,path = set_server("settings.txt") #настраивает сервер
 try:
     sock.bind(('', port))
     print("Using port {}".format(port))
@@ -129,25 +132,26 @@ while True: #многоразовый сервер
     code = int()
     
     print(msg)
-    file = msg.split("\n")[0].split(" ")[1]
-    
+    file = msg.split("\n")[0].split(" ")[1] 
     file = format_address(file,path)
-    if not os.path.exists(file): # не существует файла -> ошибка 404
+    
+    if not valid_format(file): #недействительный формат файла -> ошибка 403
+        code = 403
+        file="403.html"
+    elif not os.path.exists(file): # не существует файла -> ошибка 404
         code = 404
+        file="404.html"
     else:
-        if not valid_format(file): #недействительный формат файла -> ошибка 403
-            code = 403
-        else:
-            code = 200
-            if is_image(file):
-                content=read_image(file)
-            elif is_text(file):
-                content=read_text(file)
-    resp = respond(file,content,code)
+        code = 200
+        
     if is_image(file):
+        content=read_image(file)
         conn.send(content)
-    elif is_text(file): 
-        conn.send(resp.encode())
+    elif is_text(file):
+        content=read_text(file) 
+        resp = respond(file,content,code)
+        print(resp)
+        conn.send(resp.encode(encoding="utf-8"))
     log("log.txt",file,code)
 
 conn.close()
