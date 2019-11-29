@@ -1,8 +1,9 @@
 import socket
 import os
 import datetime
+import bs4, requests
 
-def valid_format(file,formats=["jpeg","txt","png","css","html", "js"]):
+def valid_format(file,formats=[".jpeg",".txt",".png",".css",".html", ".js"]):
     """Проверяет, входит ли формат файла в список валидных"""
     if file_format(file) in formats:
         return True
@@ -13,42 +14,74 @@ def file_format(file):
     return os.path.splitext(file)[1]
 
 def set_server(settings_file,sep=";"):
-    """В файле настроек хранятся: порт, запасной порт, директория, макс. объём запроса """
-    settings=tuple()
+    """В файле настроек хранятся: порт, запасной порт, макс. объём запроса, директория """
+    settings = list()
     with open(settings_file) as f:
-        setings=f.read().split(sep)
-    return settings
+        settings = f.read().split(sep)
+        return (int(settings[0]),int(settings[1]),int(settings[2]),settings[3])
+    
+def get_ip():
+    """Получает IP """
+    s = requests.get('https://2ip.ua/ru/')
+    b = bs4.BeautifulSoup(s.text, "html.parser")
+    a = b.select(" .ipblockgradient .ip")[0].getText()
+    return a.strip()
 
+def log(log_file,file,code):
+    """ Логирует дату, ip, код статуса в файл """
+    global statuses
+    date=datetime.datetime.now()
+    ip=get_ip()
+    if os.path.exists(log_file):
+        mod="a"
+    else:
+        mod="w+"
+    with open(log_file,mod) as f:
+        f.write("Date: {}\nIP: {}\nFile: {}\nCode: {} {}\n\n".format(date,ip,file,code,statuses[code]))
+        
 def content_type(extension):
     """Определяет content-type """
-    text=["txt","css","html"]
-    image=["png","jpeg"]
-    application=["js"]
+    text=[".txt",".css",".html"]
+    image=[".png",".jpeg"]
+    application=[".js"]
+    c = str()
     if extension in text:
-        return "text/"+extension
-    if extension in image:
-        return "image/"+extension
-    if extension in application:
-        return "application/"+extension
+        c="text/"
+    elif extension in image:
+        c="image/"    
+    elif extension in application:
+        c="application/"
+    if c is not None:
+        return c+extension[1:]
+    return None
 
-
-def respond(file,content,code=200):
+def respond(file,content,code = 200):
     """Формирует ответ в соответствии с кодом """
+    global statuses
     statuses={200: "OK", 403:"Forbidden",404: "Not Found"}
     http="HTTP/1.1"
     server="Self-Made Server v0.0.1"
-    date=datetime.datetime.now()
-    content_type=content_type(file_format(file))
-    content_length=len(content)
+    date = datetime.datetime.now()
+    contenttype = content_type(file_format(file))
+    contentlength = len(content)
     connection="close"
-    response="{} {} {}\nDate: {}\nServer: {}\nContent-type: {}\nContent-length: {}\n \
-    Connection: {}".format(http,code,statuses[code],date,server,content_type,
-                 content_length,connection)
+    response="{} {} {}\nDate: {}\nServer: {}\nContent-type: {}\nContent-length: {}\nConnection: {}\n\n{}".format(http,code,statuses[code],date,server,contenttype,
+                 contentlength,connection,content)
     return response
+
+def format_address(file,path):
+    """Форматирует адрес файла """
+    if path != "":
+        file = os.path.join(path,file)
+    if file == "/":
+        file="index.html"
+    if file[0] == "/":
+        file = file[1:]
+    return file
 
 sock = socket.socket()
 
-port,backup_port,path,bufsize=set_settings("settings.txt")
+port,backup_port,bufsize,path = set_server("settings.txt")
 try:
     sock.bind(('', port))
     print("Using port {}".format(port))
@@ -57,33 +90,31 @@ except OSError:
     print("Using port {}".format(backup_port))
 
 sock.listen(5)
-
 conn, addr = sock.accept()
 print("Connected", addr)
 
-data = conn.recv(8192)
+data = conn.recv(bufsize)
 msg = data.decode()
 content=""
-code=int()
+code = int()
 
 print(msg)
-file=msg.split(" ")[1][0:]
-if file=="/":
-    file="index.html"
-file=os.path.join(dir,file)
-if not os.path.exists(file):
-    code=404
+file = msg.split("\n")[0].split(" ")[1]
+
+file = format_address(file,path)
+if not os.path.exists(file): # не существует файла -> ошибка 404
+    code = 404
 else:
-    if not valid_format(file):
-        code=403
+    if not valid_format(file): #недействительный формат файла -> ошибка 403
+        code = 403
     else:
-        code=200
-        with open(file,"r") as f:
-        for line in f:
-            content+=line
-
-resp=respond(file,content,code)
-
+        code = 200
+        with open(file,"r") as f: #читает содержимое файла
+            for line in f:
+                content+=line
+resp = respond(file,content,code)
+print(resp)
 conn.send(resp.encode())
+log("log.txt",file,code)
 
 conn.close()
