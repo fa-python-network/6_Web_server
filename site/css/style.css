@@ -5,3 +5,25 @@ body {
 h1 {
     text-align: center;
 }
+img {
+    -webkit-animation: shake 3.0s linear alternate infinite;
+    animation: shake 3.0s linear alternate infinite; 
+}
+@keyframes shake {
+from {
+margin-left: 0%; 
+}
+to {
+margin-left: 90%;
+transform: scale(-1, 1);
+}
+}
+@-webkit-keyframes shake {
+from {
+margin-left: 0%; 
+}
+to {
+margin-left: 90%;
+transform: scale(-1, 1);
+}
+}

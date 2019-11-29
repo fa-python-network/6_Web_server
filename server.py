@@ -26,7 +26,7 @@ def work(msg, conn, addr):
     print("Connected", addr)
 
     rash = msg.split('.')[1]
-    if rash not in ('html','css','js', 'min'):
+    if rash not in ('html','css','js', 'min', 'jpeg', 'png'):
         logging.info(f' {msg} - {addr[0]} - 403 forbidden')
         status = "HTTP/1.1 403 forbidden\n"
         msg = '403.html'
@@ -45,15 +45,18 @@ def work(msg, conn, addr):
     else:
         CT = "Content-type:\n"
 
-    file = ''
+    file = b''
     try:
-        with open(os.path.join(config["dir"], msg), 'r') as f:
+        # if rash == 'png' or rash == 'jpeg':
+        #     with open(msg, 'rb') as f:
+        #         file = f.read()
+        with open(os.path.join(config["dir"], msg), 'rb') as f:
             for line in f:
                 file += line
     except FileNotFoundError:
         logging.info(f'{msg} - {addr[0]} - 404 NOT FOUND')
         status = "HTTP/1.1 404 NOT FOUND\n"
-        with open(os.path.join(config["dir"], "404.html"), 'r') as f:
+        with open(os.path.join(config["dir"], "404.html"), 'rb') as f:
             for line in f:
                 file += line
     
@@ -65,12 +68,13 @@ def work(msg, conn, addr):
     resp += f'Server: SelfMadeServer v0.0.1\n'
     resp += date
     resp += CT
-    resp += f'Content-length: {len(file.encode())}\n\n'
+    resp += f'Content-length: {len(file)}\n\n'
+    resp = resp.encode() + file
     print(resp)
-    resp += file
-    resp += 'Connection: close'
+    resp += '\n\nConnection: close'.encode()
     
-    conn.send(resp.encode())
+
+    conn.send(resp)
 
     conn.close()
 
