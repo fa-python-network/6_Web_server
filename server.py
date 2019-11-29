@@ -108,7 +108,7 @@ def format_address(file,path):
         file = file[1:]
     return file
 
-sock = socket.socket()
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 port,backup_port,bufsize,path = set_server("settings.txt")
 try:
