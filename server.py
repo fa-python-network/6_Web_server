@@ -1,31 +1,43 @@
 import socket
+import re
+import datetime
 
-sock = socket.socket()
+HOST = '127.0.0.1'
+PORT = 65432
 
-try:
-    sock.bind(('', 80))
-    print("Using port 80")
-except OSError:
-    sock.bind(('', 8080))
-    print("Using port 8080")
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.bind((HOST, PORT))
+    s.listen()
 
-sock.listen(5)
+    #while True:
+    conn, addr = s.accept()
 
-conn, addr = sock.accept()
-print("Connected", addr)
+    with conn:
+        print(f'Connected by {addr}')
 
-data = conn.recv(8192)
-msg = data.decode()
+        data = conn.recv(8192).decode()
+        print(data)
 
-print(msg)
+        request = ''
+        if match := re.search(r'GET /(?P<requested_entity>.+) HTTP/1.1', data):
+            request = match.group(1)
+        
+        print(f'Request: /{request}')
 
-resp = """HTTP/1.1 200 OK
-Server: SelfMadeServer v0.0.1
-Content-type: text/html
+        if re.match(r'.+\.(txt|html|css|js)', request):
+            response = f"""HTTP/1.x 200 OK
+Content-Type: text/html; charset=UTF-8
+Date: {datetime.date.today()}
 Connection: close
 
-Hello, webworld!"""
+"""
+            try:
+                with open(f'content/{request}') as f:
+                    response += f.read()
+            except:
+                with open('content/index.html') as f:
+                    response += f.read()
+        else:
+            response = f'HTTP/1.x 403 Forbidden\nDate: {datetime.date.today()}\nConnection: close'
 
-conn.send(resp.encode())
-
-conn.close()
+        conn.sendall(response.encode())
