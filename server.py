@@ -90,31 +90,32 @@ except OSError:
     print("Using port {}".format(backup_port))
 
 sock.listen(5)
-conn, addr = sock.accept()
-print("Connected", addr)
-
-data = conn.recv(bufsize)
-msg = data.decode()
-content=""
-code = int()
-
-print(msg)
-file = msg.split("\n")[0].split(" ")[1]
-
-file = format_address(file,path)
-if not os.path.exists(file): # не существует файла -> ошибка 404
-    code = 404
-else:
-    if not valid_format(file): #недействительный формат файла -> ошибка 403
-        code = 403
+while True: #многоразовый сервер
+    conn, addr = sock.accept()
+    print("Connected", addr)
+    
+    data = conn.recv(bufsize)
+    msg = data.decode()
+    content=""
+    code = int()
+    
+    print(msg)
+    file = msg.split("\n")[0].split(" ")[1]
+    
+    file = format_address(file,path)
+    if not os.path.exists(file): # не существует файла -> ошибка 404
+        code = 404
     else:
-        code = 200
-        with open(file,"r") as f: #читает содержимое файла
-            for line in f:
-                content+=line
-resp = respond(file,content,code)
-print(resp)
-conn.send(resp.encode())
-log("log.txt",file,code)
+        if not valid_format(file): #недействительный формат файла -> ошибка 403
+            code = 403
+        else:
+            code = 200
+            with open(file,"r",encoding="utf-8") as f: #читает содержимое файла
+                for line in f:
+                    content+=line
+    resp = respond(file,content,code)
+    print(resp)
+    conn.send(resp.encode())
+    log("log.txt",file,code)
 
 conn.close()
