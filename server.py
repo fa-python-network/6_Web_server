@@ -3,16 +3,59 @@ import os
 import datetime
 import bs4, requests
 
+global image,text,application
+text=[".txt",".css",".html"]
+image=[".png",".jpeg"]
+application=[".js"]
+
 def valid_format(file,formats=[".jpeg",".txt",".png",".css",".html", ".js"]):
     """Проверяет, входит ли формат файла в список валидных"""
     if file_format(file) in formats:
         return True
     return False
 
+def content_type(extension):
+    """Определяет content-type """
+    global text,image,application
+    c = str()
+    if extension in text:
+        c="text/"
+    elif extension in image:
+        c="image/"    
+    elif extension in application:
+        c="application/"
+    if c is not None:
+        return c+extension[1:]
+    return None
+
 def file_format(file):
     """Определяет формат файла """
     return os.path.splitext(file)[1]
 
+def is_image(file):
+    global image
+    if file_format(file) in image:
+        return True
+    return False
+
+def is_text(file):
+    global text
+    if file_format(file) in text:
+        return True
+    return False
+
+def read_image(file):
+    with open(file,"rb") as f:
+        content=f.read()
+        return content
+    
+def read_text(file):
+    content=str()
+    with open(file,"r",encoding="utf-8") as f: #читает содержимое файла
+        for line in f:
+            content+=line 
+    return content
+    
 def set_server(settings_file,sep=";"):
     """В файле настроек хранятся: порт, запасной порт, макс. объём запроса, директория """
     settings = list()
@@ -39,21 +82,7 @@ def log(log_file,file,code):
     with open(log_file,mod) as f:
         f.write("Date: {}\nIP: {}\nFile: {}\nCode: {} {}\n\n".format(date,ip,file,code,statuses[code]))
         
-def content_type(extension):
-    """Определяет content-type """
-    text=[".txt",".css",".html"]
-    image=[".png",".jpeg"]
-    application=[".js"]
-    c = str()
-    if extension in text:
-        c="text/"
-    elif extension in image:
-        c="image/"    
-    elif extension in application:
-        c="application/"
-    if c is not None:
-        return c+extension[1:]
-    return None
+
 
 def respond(file,content,code = 200):
     """Формирует ответ в соответствии с кодом """
@@ -110,12 +139,15 @@ while True: #многоразовый сервер
             code = 403
         else:
             code = 200
-            with open(file,"r",encoding="utf-8") as f: #читает содержимое файла
-                for line in f:
-                    content+=line
+            if is_image(file):
+                content=read_image(file)
+            elif is_text(file):
+                content=read_text(file)
     resp = respond(file,content,code)
-    print(resp)
-    conn.send(resp.encode())
+    if is_image(file):
+        conn.send(content)
+    elif is_text(file): 
+        conn.send(resp.encode())
     log("log.txt",file,code)
 
 conn.close()
