@@ -2,11 +2,11 @@ import socket
 import os
 import datetime
 
+#считываем html файлы и проверяем их на наличие картинка
 def read_file(name):
     content = ''
     testFile = open(name,'r', encoding='utf-8')
-    #Самая бесполезная вещь за сегодняшний день(кроме сема по экселю)
-    # зачем-то написала этот кусок кода, который ищет полный путь к картинке
+    # кусок кода, который делает запрос на картинку, если она имеется
     for line in testFile:
         if line.find('<img')!= -1:
             z = line.split('"')
@@ -20,6 +20,8 @@ def read_file(name):
         content += line
     testFile.close()
     return content.encode()
+
+#читаем картинку в байтах, ибо иначе никак
 def read_img(name):
     f = open(name, 'rb')
     c = f.read()
@@ -44,15 +46,16 @@ while True:
     data = conn.recv(8192)
     msg = data.decode()
     print(msg)
+    #try для проверки на пустую строку
     try:
         x = msg.split('\n')[0].split(' ')[1]
         p = os.path.exists(os.path.join(os.getcwd(), x[1:]))
         type = 'text/html'
         now = datetime.datetime.now()
+        status_code = '200 OK'
         if p and x.split('.')[-1] == 'html':
             x = read_file(x[1:])
             type = 'text/html'
-            status_code  = '200 OK'
         elif p and x.split('.')[-1] == 'jpg':
             x = read_img(x[1:])
             type = 'image/jpeg'
