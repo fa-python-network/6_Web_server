@@ -2,17 +2,24 @@ import socket, os, time
 
 sock = socket.socket()
 
+with open('settings.ini','r') as f:
+	settings = f.read()
+	settings = settings.split('\n')
+
+listenport = int(settings[1])
+
+	
 try:
-    sock.bind(('', 80))
-    print("Using port 80")
+    sock.bind(('', listenport))
+    print(f'Using port {listenport}')
 except OSError:
-    sock.bind(('', 8080))
-    print("Using port 8080")
+    print('Ошибка старта сервера. Порт занят!')
 
 sock.listen(5)
 
 workdir = os.getcwd()
-workdir = os.path.join(workdir,'www')
+workdir = os.path.join(workdir,settings[3])
+print(f'Используется директория {settings[3]}')
 
 header = ['HTTP/1.1',' ','2(code and word)','\nServer: StepIgorWebServer v1.0.0\nContent-type: ','4(content type)','; charset:utf-8\nConnection: close\nDate: ','6 (date)','\n\n']
 
@@ -36,6 +43,7 @@ while True:
 	if (askfile == '/'):
 		with open(os.path.join(workdir,'index.html'),'r', encoding='UTF-8') as f:
 			ansfile = f.read()
+			
 		header[2] = '200 OK'
 		header[4] = 'text/html'
 		answer = ''.join(header) + ansfile
@@ -52,21 +60,21 @@ while True:
 		if os.path.exists(os.path.join(workdir,askfile)):
 			if os.path.isfile(os.path.join(workdir,askfile)):
 				if ext == 'html':
-					with open(os.path.join(workdir,os.path.join(workdir,askfile)),'r', encoding='UTF-8') as f:
+					with open(os.path.join(workdir,askfile),'r', encoding='UTF-8') as f:
 						ansfile = f.read()
 					header[2] = '200 OK'
 					header[4] = 'text/html'
 					answer = ''.join(header) + ansfile
 					conn.send(answer.encode())
 				elif (ext in ['gif','png','ico','jpg','jpeg']):
-					with open(os.path.join(workdir,os.path.join(workdir,askfile)),'rb') as f:
+					with open(os.path.join(workdir,askfile),'rb') as f:
 						ansfile = f.read()
 						header[2] = '200 OK'
 						header[4] = 'image/'+ext
 						answer = ''.join(header).encode() + ansfile
 						conn.send(answer)
 				elif (ext == 'txt'):
-					with open(os.path.join(workdir,os.path.join(workdir,askfile)),'r', encoding='UTF-8') as f:
+					with open(os.path.join(workdir,askfile),'r', encoding='UTF-8') as f:
 						ansfile = f.read()
 					header[2] = '200 OK'
 					header[4] = 'text/txt'
