@@ -1,0 +1,7 @@
+Fri, 29 Nov 2019 11:04:14 GMT - ('127.0.0.1', 56625) - / - Fri, 29 Nov 2019 11:04:14 GMT - ('127.0.0.1', 56626) - /favicon.png - 200 OK
+Fri, 29 Nov 2019 11:04:18 GMT - ('127.0.0.1', 56627) - /difres.html - 200 OK
+Fri, 29 Nov 2019 11:04:19 GMT - ('127.0.0.1', 56633) - /favicon.ico - 404 Not Found
+Fri, 29 Nov 2019 11:04:21 GMT - ('127.0.0.1', 56639) - /index.html - 200 OK
+Fri, 29 Nov 2019 11:04:23 GMT - ('127.0.0.1', 56640) - /error.html - 404 Not Found
+Fri, 29 Nov 2019 11:04:27 GMT - ('127.0.0.1', 56641) - /file.txt - 200 OK
+Fri, 29 Nov 2019 11:04:30 GMT - ('127.0.0.1', 56645) - /deny.pdf - 403 Forbidden

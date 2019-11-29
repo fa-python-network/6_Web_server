@@ -40,6 +40,9 @@ while True:
 	
 	header[6] = time.strftime('%a, %d %b %Y %H:%M:%S GMT');
 	
+	with open('access.log','a') as f:
+		f.write(f'{header[6]} - {addr} - {askfile} - ')
+	
 	if (askfile == '/'):
 		with open(os.path.join(workdir,'index.html'),'r', encoding='UTF-8') as f:
 			ansfile = f.read()
@@ -66,13 +69,17 @@ while True:
 					header[4] = 'text/html'
 					answer = ''.join(header) + ansfile
 					conn.send(answer.encode())
+					with open('access.log','a') as f:
+						f.write(f'{header[2]}\n')
 				elif (ext in ['gif','png','ico','jpg','jpeg']):
 					with open(os.path.join(workdir,askfile),'rb') as f:
 						ansfile = f.read()
-						header[2] = '200 OK'
-						header[4] = 'image/'+ext
-						answer = ''.join(header).encode() + ansfile
-						conn.send(answer)
+					header[2] = '200 OK'
+					header[4] = 'image/'+ext
+					answer = ''.join(header).encode() + ansfile
+					conn.send(answer)
+					with open('access.log','a') as f:
+						f.write(f'{header[2]}\n')
 				elif (ext == 'txt'):
 					with open(os.path.join(workdir,askfile),'r', encoding='UTF-8') as f:
 						ansfile = f.read()
@@ -80,21 +87,29 @@ while True:
 					header[4] = 'text/txt'
 					answer = ''.join(header) + ansfile
 					conn.send(answer.encode())
+					with open('access.log','a') as f:
+						f.write(f'{header[2]}\n')
 				else:
-					header[2] = '200 OK'
+					header[2] = '403 Forbidden'
 					header[4] = 'text/html'
-					answer = ''.join(header) + 'Сервер не умеет отдавать файлы такого формата :('
+					answer = ''.join(header)
 					conn.send(answer.encode())
+					with open('access.log','a') as f:
+						f.write(f'{header[2]}\n')
 			else:
 				header[2] = '403 Forbidden'
 				header[4] = 'text/html'
 				answer = ''.join(header)
 				conn.send(answer.encode())
+				with open('access.log','a') as f:
+						f.write(f'{header[2]}\n')
 		else:
 			header[2] = '404 Not Found'
 			header[4] = 'text/html'
 			answer = ''.join(header)
 			conn.send(answer.encode())
+			with open('access.log','a') as f:
+						f.write(f'{header[2]}\n')
 	
 
 	#end
