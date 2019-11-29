@@ -44,10 +44,10 @@ def newclient (conn, addr, max, dir):
 
         if rash not in ('html', 'css', 'js', 'min', 'png'):
             logging.info(f' {msg} - {addr[0]} - 403 forbidden')
-            e = 403
+            e = '403 forbidden'
             msg = '403.html'
         else:
-            e = 200
+            e = '200 OK'
 
         if rash == 'css' or rash == 'min':
             Content = "text/css"
@@ -68,14 +68,14 @@ def newclient (conn, addr, max, dir):
 
 
         except FileNotFoundError:
-             e = 404
+             e = '404 NOT FOUND'
              logging.info(f'{msg} - {addr[0]} - 404')
              with open('404.htm', 'rb') as f:
                  mess = f.read()
                  leng = os.path.getsize('404.htm')
 
 
-        resp = f"""HTTP/1.1 {e} OK
+        resp = f"""HTTP/1.1 {e}
         Date: {time.ctime()}
         Server: SelfMadeServer v0.0.1
         Content-type: {Content}
