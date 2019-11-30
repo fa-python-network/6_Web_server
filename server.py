@@ -15,15 +15,22 @@ with open('settings.txt') as f:
         HOST = line.split(';')[0]
         PORT = int(line.split(';')[1])
         max_size = int(line.split(';')[2])
-with open('favicon.png', 'rb') as file:
-    x = file.open()
+with open('error.png', 'rb') as file:
+    x = file.read()
+    y = len(x)
 
 sock = socket.socket()
 with open('temp/index.html') as file:
     htm1 = file.read()
-error404header = 'HTTP/1.1 404 Not Found' + x
+error404header = ('HTTP/1.1 404 Not Found' + str(x)).encode()
 error403header = 'HTTP/1.1 403 Forbidden Error'
+picture_resp = f"""HTTP/1.1 200 OK
+Server: SelfMadeServer v0.0.1
+Content-type: image/png
+Content-Length: {y}
+Connection: close
 
+""".encode()
 try:
     sock.bind((HOST, PORT))
     print("Using port ", PORT)
@@ -48,46 +55,41 @@ def new_client(conn, addr):
     if len(msg) == 1 or msg[1] == 'html' or msg[1] == 'js' or msg[1] == 'css':
         response(msg,msg1)
     else:
-        resp = """HTTP/1.1 403 Forbidden
+        resp = ("""HTTP/1.1 403 Forbidden
 Server: SelfMadeServer v0.0.1
 Content-type: text/html
 Connection: close
 
-""" + error403header
+""" + error403header).encode()
         logging.error(f'{addr[1]}, {msg1[1:]} raised Error 403 ')
-        conn.send(resp.encode())
+        conn.send(resp)
 
 def response(msg,msg1):
     try:
         with open('temp/' + msg1[1:]) as file:
             htm = file.read()
-        resp = """HTTP/1.1 200 OK
+        resp = ("""HTTP/1.1 200 OK
 Server: SelfMadeServer v0.0.1
 Content-type: text/html
 Connection: close
 
-"""+htm
+"""+htm).encode()
     except:
-        resp = """HTTP/1.1 404 Not Found
-Server: SelfMadeServer v0.0.1
-Content-type: text/html
-Connection: close
-
-"""+error404header
+        resp = picture_resp + error404header
 
         logging.error(f'{addr[1]}, {msg1[1:]} raised Error 404 ')
     finally:
         if msg1[1:] == "":
-            resp = """HTTP/1.1 200 OK
+            resp = ("""HTTP/1.1 200 OK
 Server: SelfMadeServer v0.0.1
 Content-type: text/html
 Connection: close
 
-"""+htm1
+"""+htm1).encode()
 
     print(msg)
-    conn.send(resp.encode())
-
+    conn.send(resp)
+    conn.close()
 
 
 while True:
