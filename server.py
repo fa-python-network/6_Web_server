@@ -22,9 +22,9 @@ with open('error.png', 'rb') as file:
 sock = socket.socket()
 with open('temp/index.html') as file:
     htm1 = file.read()
-error404header = ('HTTP/1.1 404 Not Found' + str(x)).encode()
+error404header = 'HTTP/1.1 404 Not Found'
 error403header = 'HTTP/1.1 403 Forbidden Error'
-picture_resp = f"""HTTP/1.1 200 OK
+picture_resp = f"""HTTP/1.1 404 Not Found
 Server: SelfMadeServer v0.0.1
 Content-type: image/png
 Content-Length: {y}
@@ -55,7 +55,7 @@ def new_client(conn, addr):
     if len(msg) == 1 or msg[1] == 'html' or msg[1] == 'js' or msg[1] == 'css':
         response(msg,msg1)
     else:
-        resp = ("""HTTP/1.1 403 Forbidden
+        resp = (f"""{error403header}
 Server: SelfMadeServer v0.0.1
 Content-type: text/html
 Connection: close
@@ -66,6 +66,16 @@ Connection: close
 
 def response(msg,msg1):
     try:
+#         if msg1 == '/index.html':
+#             with open('temp/' + msg1[1:]) as file:
+#                 htm = file.read()
+#             resp = f"""HTTP/1.1 200 OK
+# Server: SelfMadeServer v0.0.1
+# Content-type: image/png
+# Content-Length: {y}
+# Connection: close
+#
+# """.encode() + x
         with open('temp/' + msg1[1:]) as file:
             htm = file.read()
         resp = ("""HTTP/1.1 200 OK
@@ -74,10 +84,18 @@ Content-type: text/html
 Connection: close
 
 """+htm).encode()
+#         print('msg', msg)
+#         print('msg1', msg1)
     except:
-        resp = picture_resp + error404header
+        resp = resp = f"""{error404header}
+Server: SelfMadeServer v0.0.1
+Content-type: image/png
+Content-Length: {y}
+Connection: close
 
-        logging.error(f'{addr[1]}, {msg1[1:]} raised Error 404 ')
+""".encode() + x
+
+        logging.error(f"{addr[1]}, {msg1[1:]} raised Error 404 ")
     finally:
         if msg1[1:] == "":
             resp = ("""HTTP/1.1 200 OK
