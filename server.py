@@ -1,31 +1,43 @@
 import socket
+import os
+
+PORT = 8085
 
 sock = socket.socket()
+sock.bind(('', PORT))
+sock.listen()
+print("Прослушиваем порт", PORT)
 
-try:
-    sock.bind(('', 80))
-    print("Using port 80")
-except OSError:
-    sock.bind(('', 8080))
-    print("Using port 8080")
+def readed_file(path):
+    try:
+        f = open('docs' + path, 'r')
+    except OSError:
+        return ""
 
-sock.listen(5)
+    str = ''
+    for line in f:
+        str += line
+    return str
 
-conn, addr = sock.accept()
-print("Connected", addr)
+while True:
+    conn, addr = sock.accept()
+    
+    request = conn.recv(8192).decode().split('\n\n')
 
-data = conn.recv(8192)
-msg = data.decode()
+    header = request[0]
+    header = header.split('\n')
 
-print(msg)
+    path = (header[0].split())[1]
 
-resp = """HTTP/1.1 200 OK
-Server: SelfMadeServer v0.0.1
-Content-type: text/html
-Connection: close
+    if path == "/":
+        path = '/index.html'
 
-Hello, webworld!"""
+    headers_to_res = "HTTP/1.0 200 OK\n\n"
+    body = readed_file(path)
+    if body == "":
+        conn.send("HTTP/1.0 404 BAD_REQEST\n\n BAD REQEST".encode())
+    else:
+        res = headers_to_res + body
+        conn.send(res.encode())
 
-conn.send(resp.encode())
-
-conn.close()
+    conn.close()
