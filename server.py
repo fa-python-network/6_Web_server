@@ -15,8 +15,6 @@ def image_reader(name):
     file.close()
     return content
     
-
-
 sock = socket.socket()
 
 try:
@@ -42,33 +40,45 @@ while True:
     date = d.datetime.today()
 
     if os.path.exists(path_to_file) == True:
-        if path_to_file.split('.')[1] == 'txt':
+        if path_to_file.split('.')[-1] == 'txt':
             type_of_file = 'text/html'
             conn.send(file_reader(path_to_file))
-        elif path_to_file.split('.')[1] == 'html':
+            
+        elif path_to_file.split('.')[-1] == 'html':
             type_of_file = 'text/html'
             conn.send(file_reader(path_to_file))
-        elif path_to_file.split('.')[1] == 'img':
+            
+        elif path_to_file.split('.')[-1] == 'img':
             type_of_file = 'image/jpeg'
             conn.send(image_reader(path_to_file))
-        elif path_to_file.split('.')[1] == 'jpg':
+            
+        elif path_to_file.split('.')[-1] == 'jpg':
             type_of_file = 'image/jpeg'
             conn.send(image_reader(path_to_file))
-        elif path_to_file.split('.')[1] == 'png':
+            
+        elif path_to_file.split('.')[-1] == 'png':
             type_of_file = 'image/jpeg'
             conn.send(image_reader(path_to_file))
-        elif path_to_file.split('.')[1] == 'gif':
+            
+        elif path_to_file.split('.')[-1] == 'gif':
             type_of_file = 'image/jpeg'
             conn.send(image_reader(path_to_file))
+        else:
+            conn.send(file_reader('403.html'))
 
     else:
-        resp = """HTTP/1.1 404 Not found
-    Server: SelfMadeServer v0.0.1
-    Content-type: {}
-    Date: {}
-    Connection: close
-    Charset: UTF-8
-    """.format(type_of_file, date)
-        conn.send(resp.encode())
+        path = os.path.join(os.getcwd(), '404.html')
+        conn.send(file_reader(path))
+        
+        
+#        resp = """HTTP/1.1 404 Not found
+#    Server: SelfMadeServer v0.0.1
+#    Content-type: {}
+#    Date: {}
+#    Connection: close
+#    Charset: UTF-8
+#    """.format(type_of_file, date)
+#    
+#        conn.send(resp.encode())
 
 conn.close()
