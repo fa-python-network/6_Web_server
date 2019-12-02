@@ -1,0 +1,5 @@
+{   "MAX":  8192,
+    "PORT": 8080,   
+    "DIR" : ".",
+    "LIS" : 5,
+    "ADR" : "localhost"}
