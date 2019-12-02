@@ -57,6 +57,9 @@ while True:
         elif path_to_file.split('.')[1] == 'png':
             type_of_file = 'image/jpeg'
             conn.send(image_reader(path_to_file))
+        elif path_to_file.split('.')[1] == 'gif':
+            type_of_file = 'image/jpeg'
+            conn.send(image_reader(path_to_file))
 
     else:
         resp = """HTTP/1.1 404 Not found
