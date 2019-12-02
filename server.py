@@ -45,9 +45,9 @@ def new_client(conn, addr):
 
     data = conn.recv(max_size)
     msg = data.decode()
-    msg1 = msg.split(" ")[1]
 
     try:
+        msg1 = msg.split(" ")[1]
         msg = msg1.split('.')
     except:
         pass
@@ -63,6 +63,7 @@ Connection: close
 """ + error403header).encode()
         logging.error(f'{addr[1]}, {msg1[1:]} raised Error 403 ')
         conn.send(resp)
+    conn.close()
 
 def response(msg,msg1):
     try:
