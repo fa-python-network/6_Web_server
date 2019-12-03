@@ -52,9 +52,9 @@ except FileNotFoundError:
 data = conn.recv(8192)
 msg = data.decode()
 resp = resp.encode()
-    else:
-        decr = name.split(".")[-1]  
-        if decr not in settings.types:
+
+decr = name.split(".")[-1]  
+if decr not in settings.types:
             resp = f"""HTTP/1.1 403 Forbidden
             Server:SelfMadeServer v0.0.1
             Date: {date}
@@ -62,7 +62,7 @@ resp = resp.encode()
             """
             with open("log.txt", "a") as log:
                 print("Error: 403", file=log)
-        else:
+else:
             try:
                 with open(name, "r", encoding="utf-8") as file:
                     resp = f"""HTTP/1.1 200 OK
