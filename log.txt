@@ -1,0 +1,50 @@
+Date: Fri, 06 Dec 2019 09:44:26 GTM
+Addr: ('127.0.0.1', 62619)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\index.html
+Error: 404
+Date: Fri, 06 Dec 2019 09:44:31 GTM
+Addr: ('127.0.0.1', 62620)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\index.html
+Error: 404
+Date: Fri, 06 Dec 2019 09:44:56 GTM
+Addr: ('127.0.0.1', 62630)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\index.html
+Error: 404
+Date: Fri, 06 Dec 2019 09:45:11 GTM
+Addr: ('127.0.0.1', 62638)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\index.html
+Error: 404
+Date: Fri, 06 Dec 2019 09:45:58 GTM
+Addr: ('127.0.0.1', 62644)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\index.html
+Error: 404
+Date: Fri, 06 Dec 2019 09:48:26 GTM
+Addr: ('127.0.0.1', 62655)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\index.html
+Date: Fri, 06 Dec 2019 09:48:27 GTM
+Addr: ('127.0.0.1', 62656)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\favicon.ico
+Error: 404
+Date: Fri, 06 Dec 2019 09:50:26 GTM
+Addr: ('127.0.0.1', 62666)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\wyyy.html
+Date: Fri, 06 Dec 2019 09:50:48 GTM
+Addr: ('127.0.0.1', 62672)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\index.html
+Date: Fri, 06 Dec 2019 09:57:18 GTM
+Addr: ('127.0.0.1', 62716)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\zzzz.html
+Date: Fri, 06 Dec 2019 09:57:18 GTM
+Addr: ('127.0.0.1', 62717)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\current_script.js
+Error: 404
+Date: Fri, 06 Dec 2019 09:57:19 GTM
+Addr: ('127.0.0.1', 62718)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\main.css
+Error: 404
+Date: Fri, 06 Dec 2019 10:00:46 GTM
+Addr: ('127.0.0.1', 62727)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\index.html
+Date: Fri, 06 Dec 2019 10:01:02 GTM
+Addr: ('127.0.0.1', 62733)
+File: C:\Users\MI\Desktop\Универ\Э Unix\FTPFTP\rabotaet\mmm.html
