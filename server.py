@@ -65,7 +65,7 @@ while True:
 Server: SelfMadeServer v0.0.1
 Content-type: {type}
 Content-length{len(a)}
-Date: {now}
+Date: {time}
 Connection: close
 """
     except IndexError:
