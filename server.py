@@ -19,7 +19,7 @@ except OSError:
     print("Using port 8080")
 
 
-while True
+while True:
     sock.listen(5)
     conn, addr = sock.accept()
     print("Connected", addr)
@@ -29,7 +29,7 @@ while True
 
     print(msg)
     try:
-    	now = datetime.datetime.now()
+    	time = datetime.datetime.now()
 
         a = msg.split('\n')[0].split(' ')[1]
         s = os.path.exists(os.path.join(os.getcwd(), a[1:]))
@@ -65,7 +65,7 @@ while True
 Server: SelfMadeServer v0.0.1
 Content-type: {type}
 Content-length{len(a)}
-Date: {time}
+Date: {now}
 Connection: close
 """
     except IndexError:
