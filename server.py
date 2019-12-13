@@ -10,6 +10,7 @@ def open_file(name):
     return content.encode()
 
 
+
 def open_img(name):
     f = open(name, 'rb')
     c = f.read()
@@ -17,23 +18,29 @@ def open_img(name):
     return c
 
 
+
 sock = socket.socket()
 
+
 try:
-    sock.bind(('', 80))
-    print("Using port 80")
+    sock.bind(('', 90))
+    print("Using port 90")
+
 
 except OSError:
-    sock.bind(('', 8080))
-    print("Using port 8080")
+    sock.bind(('', 8090))
+    print("Using port 8090")
+
 
 while True:
     sock.listen(5)
     conn, addr = sock.accept()
     print("Connected", addr)
 
+
     data = conn.recv(8192)
     msg = data.decode()
+
 
     print(msg)
     try:
