@@ -71,9 +71,9 @@ if __name__ == '__main__':
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  
 
     sock.bind(('', Settings.port)) 
-    logging.info("Запуск сервера на порте: " + str(Settings.port))
+    logging.info("Запуск сервер на порте: " + str(Settings.port))
 
-    sock.listen(5)  
+    sock.listen(0)  
 
     while True:  
         conn, addr = sock.accept() 
