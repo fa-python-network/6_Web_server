@@ -13,7 +13,7 @@ def printHtml(data_in):
             with open('C:/Users/OMEN/PycharmProjects/Web_server' + path, 'r') as file:
                 HtmlVar = file.read()
     except IndexError:
-        with open('views/dev_team.html', 'r') as file:
+        with open('C:/Users/OMEN/PycharmProjects/Web_server/1.html', 'r') as file:
             HtmlVar = file.read()
     time = datetime.datetime.now()
     DataOut = f"""HTTP/1.1 200 OK
